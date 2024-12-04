@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Random Coin Toss Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f8f8;
+            color: #333;
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+        }
+        .highlight {
+            font-weight: bold;
+        }
+        #numbers {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #fff;
+            overflow-wrap: break-word;
+        }
+        #statistics {
+            margin-top: 20px;
+        }
+        button {
+            background-color: #4CAF50; /* Green */
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+		button:disabled {
+			background-color: #D3D3D3; /* Light Gray */
+		}
+		
+        input[type=number] {
+            width: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Random Coin Toss Game</h1>
+    <div id="numbers"></div>
+    <div id="balance">Balance: 1000</div>
+    Bet amount: <input id="betAmount" type="number" min="0" max="1000" value="100" disabled>
+    <button id="bet0" onclick="placeBet(0)" disabled>Bet on 0</button>
+    <button id="bet1" onclick="placeBet(1)" disabled>Bet on 1</button>
+    <div id="message">Get ready! You'll be allowed to bet when 10 same numbers appear in a row.</div>
+    <div id="result"></div>
+	<div id="statistics"></div>
+
+    <script>
+    var consecutiveCount = 0;
+    var lastNumber = null;
+    var bet = null;
+    var balance = 1000;
+    var intervalId;
+    var totalCount = 0;
+    var correctBetCount = 0;
+    var incorrectBetCount = 0;
+
+    function generateNumber() {
+        // Generate a random number (0 or 1)
+        var number = Math.floor(Math.random() * 2);
+
+        if (lastNumber === number) {
+            consecutiveCount++;
+        } else {
+            consecutiveCount = 1;
+            lastNumber = number;
+        }
+
+        // Display the number
+        var numbers = document.getElementById('numbers');
+        numbers.innerHTML += number + " ";
+
+        // If there are 10 in a row, allow the user to place a bet
+        if (consecutiveCount === 10) {
+            document.getElementById('message').innerHTML = '<b>There have been 10 ' + number + '\'s in a row!</b><br/> You can now place your bet. Winning will get you 90% of your bet amount.';
+            clearInterval(intervalId); // Stop generating numbers
+            enableBetting(); // Enable betting
+        }
+    }
+
+    function enableBetting() {
+        document.getElementById('betAmount').disabled = false;
+        document.getElementById('bet0').disabled = false;
+        document.getElementById('bet1').disabled = false;
+    }
+
+    function disableBetting() {
+        document.getElementById('betAmount').disabled = true;
+        document.getElementById('bet0').disabled = true;
+        document.getElementById('bet1').disabled = true;
+    }
+
+    function placeBet(number) {
+        // If a bet has already been placed or there haven't been 10 in a row, ignore this bet
+        if (bet !== null || consecutiveCount !== 10) return;
+
+        var betAmount = parseInt(document.getElementById('betAmount').value);
+        if (betAmount > balance) {
+            alert('You cannot bet more than your balance!');
+            return;
+        }
+        balance -= betAmount;
+
+        bet = number;
+
+        // Generate the next number
+        var nextNumber = Math.floor(Math.random() * 2);
+        totalCount++;
+
+        // Display the next number
+        var numbers = document.getElementById('numbers');
+        numbers.innerHTML += "<span class='highlight'>" + nextNumber + "</span><br/><br/>"; // Highlight and make a new line
+
+        // Display the result
+        if (bet === nextNumber) {
+            document.getElementById('result').textContent = 'Congratulations! You won the bet. The next number was ' + nextNumber;
+            balance += betAmount * 1.9; // Add 90% of the bet amount to the balance
+            correctBetCount++;
+        } else {
+            document.getElementById('result').textContent = 'Sorry, you lost the bet. The next number was ' + nextNumber;
+            incorrectBetCount++;
+        }
+
+        // Display the statistics
+        var statistics = document.getElementById('statistics');
+        statistics.textContent = "Stats: Correct Bets: " + correctBetCount + " (" + ((correctBetCount / totalCount) * 100).toFixed(2) + "%), Incorrect Bets: " + incorrectBetCount + " (" + ((incorrectBetCount / totalCount) * 100).toFixed(2) + "%)";
+
+        document.getElementById('balance').textContent = 'Balance: ' + balance;
+
+        // Reset the game
+        consecutiveCount = 0;
+        lastNumber = null;
+        bet = null;
+        document.getElementById('message').textContent = 'Get ready! You\'ll be allowed to bet when 10 same numbers appear in a row.';
+        disableBetting();
+        intervalId = setInterval(generateNumber, 5);
+    }
+	
+    intervalId = setInterval(generateNumber, 5);
+</script>
+
+</body>
+</html>
